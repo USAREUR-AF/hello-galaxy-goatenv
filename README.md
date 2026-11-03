@@ -9,7 +9,7 @@
 </p>
 
 > [!NOTE]
-> goat is pre-1.0. Until goatcore's first tag, `goatcore/v0.1.0`, this repository is regenerated from its source tree and `main` may be replaced; clone again rather than pull.
+> goat is pre-1.0: interfaces can still change between releases. This repository is generated from goat's source tree; each update arrives as a new commit on `main`.
 
 The goatnet the tutorials build, one verified step at a time, so you can diff your own run against a known-good one. Part of the Hello Galaxy series: small, runnable examples, each showing best practice in one dimension. This one builds [`usareur-af/goatenv`](https://github.com/usareur-af/goatenv) from an empty directory using [`goatcore`](https://github.com/usareur-af/goatcore).
 
