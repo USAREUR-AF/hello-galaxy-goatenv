@@ -35,4 +35,4 @@ Nothing touches a network: a scripted converger stands in for the hosts, so ever
 
 ## Licence
 
-Apache License 2.0 ([LICENSE](LICENSE)).
+`hello-galaxy-goatenv` was written by U.S. Federal government employees. In the U.S. it is not subject to copyright and is in the public domain; in countries where copyright is recognized, it is released under the [Apache License 2.0](LICENSE). See [INTENT.md](INTENT.md).
