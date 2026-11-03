@@ -1,0 +1,103 @@
+#!/usr/bin/env bash
+# run — rehearse the four tutorials on this worked example and compare each with
+# its recorded checkpoint.
+#
+#   ./run [<goatbuilder binary>] [--record]
+#
+# The binary defaults to $GOATBUILDER, then `goatbuilder` on PATH: build it from
+# goatcore (cd crates && cargo build --release -p goatbuilder). The acceptance
+# assay's plan reads goatcore's manifest, so GOAT_REPO names a checkout of
+# usareur-af/goatcore at GOATBUILDER_REF.
+#
+# Each rehearsal is the "Rehearse it on the fixture" commands of the matching
+# tutorial in goatcore (docs/tutorials/), with this repository's root in place of
+# ops/goatbuilder/fixtures/goatnet-from-scratch/. Output is normalised the
+# way goatcore's ops/tutorials/check.sh normalises it (the millisecond timing, the
+# scratch directory) and diffed against checkpoints/<tutorial>.txt. Any
+# difference fails. --record rewrites the checkpoints; review the diff.
+#
+# Bash 3.2 portable.
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "$0")" && pwd)"
+GB="" RECORD=""
+for a in "$@"; do
+  case "$a" in
+    --record) RECORD=1 ;;
+    *) GB="$a" ;;
+  esac
+done
+GB="${GB:-${GOATBUILDER:-$(command -v goatbuilder || true)}}"
+[ -n "$GB" ] || { echo "run: no goatbuilder (pass a path, set GOATBUILDER, or put it on PATH)" >&2; exit 2; }
+case "$GB" in /*) ;; *) GB="$(cd "$(dirname "$GB")" && pwd)/$(basename "$GB")" ;; esac
+[ -x "$GB" ] || { echo "run: $GB is not executable" >&2; exit 2; }
+"$GB" standup --help >/dev/null 2>&1 || {
+  echo "run: $("$GB" --version 2>/dev/null || echo "$GB") has no standup verb; build goatbuilder from usareur-af/goatcore at GOATBUILDER_REF" >&2; exit 2; }
+"$GB" assay --help >/dev/null 2>&1 || {
+  echo "run: $("$GB" --version 2>/dev/null || echo "$GB") has no assay verb; build goatbuilder from usareur-af/goatcore at GOATBUILDER_REF" >&2; exit 2; }
+if [ -z "${GOAT_REPO:-}" ] || [ ! -f "$GOAT_REPO/ops/validation/acceptance-tests.yaml" ]; then
+  echo "run: set GOAT_REPO to a checkout of usareur-af/goatcore; the assay plan reads its acceptance manifest" >&2; exit 2
+fi
+GOAT_REPO="$(cd "$GOAT_REPO" && pwd)"
+
+rehearse_00() {
+  WORK="$(mktemp -d)/pasture"
+  cp -R 00-goatlite "$WORK"
+  goatbuilder standup pasture --mock "$WORK" --ack "A Learner" --yes
+  goatbuilder status --env pasture --mock "$WORK"
+  goatbuilder -C "$GOAT_REPO" assay pasture --values 00-goatlite/assay-values.yaml --plan
+}
+
+rehearse_01() {
+  WORK="$(mktemp -d)/zagros"
+  cp -R 01-founder "$WORK"
+  goatbuilder standup zagros --site alpha --mock "$WORK" --ack "A Platform Admin" --yes
+  goatbuilder status --env zagros --mock "$WORK"
+  goatbuilder -C "$GOAT_REPO" assay zagros --values 01-founder/assay-values.yaml --plan
+}
+
+rehearse_02() {
+  diff 01-founder/goatbuilder.yaml \
+       02-first-federated-node/goatbuilder.yaml || true
+  WORK="$(mktemp -d)/zagros"
+  cp -R 02-first-federated-node "$WORK"
+  goatbuilder standup zagros --site beta --mock "$WORK" --ack "A Platform Admin" --yes
+  goatbuilder status --env zagros --mock "$WORK"
+  goatbuilder -C "$GOAT_REPO" assay zagros --values 02-first-federated-node/assay-values.yaml --plan
+}
+
+rehearse_03() {
+  WORK=/tmp/goat-peering-rehearsal
+  rm -rf "$WORK"; mkdir -p "$WORK"
+  printf '{"transport":{"kind":"ipsec-fips"}}' > "$WORK/agreement.json"
+  GOAT_BIN=goat goatbuilder -C "$GOAT_REPO" --mock "$ROOT/03-boundary-node" \
+    federate hello-ally --as zagros --work "$WORK" --dry-run
+}
+
+fail=0
+for name in 00-goatlite 01-new-goatnet 02-first-federated-node 03-boundary-node; do
+  scratch="$(mktemp -d)"
+  shim="$scratch/bin"; mkdir -p "$shim"; ln -s "$GB" "$shim/goatbuilder"
+  out="$(cd "$ROOT" && export PATH="$shim:$PATH" TMPDIR="$scratch" && case "$name" in
+    00-*) rehearse_00 ;;
+    01-*) rehearse_01 ;;
+    02-*) rehearse_02 ;;
+    03-*) rehearse_03 ;;
+  esac 2>&1)" || {
+    echo "FAIL  $name: the rehearsal exited non-zero"; echo "$out" | sed 's/^/      /' | tail -20
+    fail=1; rm -rf "$scratch"; continue; }
+  norm="$(printf '%s\n' "$out" | sed -E -e "s#${scratch}[^ ]*#<scratch>#g" -e 's/ in [0-9]+ ms/ in <n> ms/g')"
+  rm -rf "$scratch"
+  want="$ROOT/checkpoints/$name.txt"
+  if [ -n "$RECORD" ]; then
+    printf '%s\n' "$norm" > "$want"; echo "recorded $name -> checkpoints/$name.txt"; continue
+  fi
+  if diff -u "$want" <(printf '%s\n' "$norm") > /dev/null; then
+    echo "ok    $name: the rehearsal matches checkpoints/$name.txt ($(wc -l < "$want" | tr -d ' ') lines)"
+  else
+    echo "FAIL  $name: the rehearsal no longer matches checkpoints/$name.txt"
+    diff -u "$want" <(printf '%s\n' "$norm") | sed 's/^/      /' | head -40
+    fail=1
+  fi
+done
+exit "$fail"

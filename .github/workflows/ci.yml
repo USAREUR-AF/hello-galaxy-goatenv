@@ -1,0 +1,79 @@
+name: ci
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  shape:
+    name: the worked example is well formed
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: shellcheck the driver
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq shellcheck
+          shellcheck run
+          [ -x run ] || { echo "run is not executable"; exit 1; }
+
+      - name: every step is a goatbuilder fixture with its checkpoint
+        run: |
+          python3 -m pip install --quiet pyyaml
+          python3 - <<'PY'
+          import json, pathlib, sys, yaml
+          rc = 0
+          for step, cp in (("00-goatlite", "00-goatlite"), ("01-founder", "01-new-goatnet"), ("02-first-federated-node", "02-first-federated-node")):
+              d = pathlib.Path(step)
+              for f in ("goatbuilder.yaml", "converger.yaml", "declared/pins.yaml"):
+                  try:
+                      yaml.safe_load((d / f).read_text())
+                  except Exception as e:
+                      print(f"{d / f}: {e}"); rc = 1
+              for j in d.rglob("*.jsonl"):
+                  for n, line in enumerate(j.read_text().splitlines(), 1):
+                      try:
+                          json.loads(line)
+                      except Exception as e:
+                          print(f"{j}:{n}: {e}"); rc = 1
+              if not (pathlib.Path("checkpoints") / f"{cp}.txt").is_file():
+                  print(f"checkpoints/{cp}.txt missing"); rc = 1
+          sys.exit(rc)
+          PY
+
+  rehearse:
+    name: the four tutorials rehearse and match their checkpoints
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: read the goatbuilder ref
+        id: ref
+        run: echo "ref=$(tr -d '[:space:]' < GOATBUILDER_REF)" >> "$GITHUB_OUTPUT"
+
+      - name: check out goatcore at that ref
+        uses: actions/checkout@v4
+        with:
+          repository: usareur-af/goatcore
+          ref: ${{ steps.ref.outputs.ref }}
+          path: goatcore
+
+      - name: install Rust (stable)
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: build goatbuilder
+        working-directory: goatcore/crates
+        run: cargo build --locked --release -p goatbuilder
+
+      - name: PyYAML for the assay plan (goatcore's acceptance runner)
+        run: python3 -m pip install --quiet pyyaml || python3 -m pip install --quiet --break-system-packages pyyaml
+
+      - name: rehearse the tutorials
+        env:
+          GOAT_REPO: goatcore
+        run: ./run goatcore/crates/target/release/goatbuilder
