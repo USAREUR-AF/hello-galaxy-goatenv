@@ -29,6 +29,10 @@ CI runs both. The fixtures and checkpoints here are copies of those in [`goatcor
 
 Reviewers look for: the change does what its subject says and nothing else; the gates pass; the design document moved with the code; status words are honest; no identifier of a real deployment (an address, a hostname, a key, a person) entered the tree. Review comments are about the change, not the author.
 
+## Merging
+
+Until development moves to these repositories, the source of record is a private upstream repository, and each release here is exported from it. A maintainer who merges a pull request here carries it into the upstream before the next export; the export refuses to publish over a merged commit it has not been told was carried, so an uncarried merge holds every later release rather than being overwritten.
+
 ## Reporting a bug or proposing a feature
 
 Open an issue with the template. For a vulnerability, **do not open an issue** — follow [SECURITY.md](SECURITY.md).
