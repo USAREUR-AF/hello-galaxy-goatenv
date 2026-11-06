@@ -33,6 +33,28 @@ GOAT_REPO=../goatcore ./run --record   # re-records the checkpoints after a deli
 
 Nothing touches a network: a scripted converger stands in for the hosts, so every verb runs for real against files and the output is the same every time.
 
+## Build on your own base images
+
+Every goat image starts from base images named by role: `rust-build`, `go-build`, `runtime-cc`, `runtime-static`, `runtime-shell` (and `node-build` in goatstuff). goatcore's defaults are images anyone may redistribute: Debian official images and distroless Debian 13. The goat team's own goatnets build on Chainguard instead, and so can yours: put a file per role at `ops/base-images/<role>/Dockerfile` in your environment, holding one digest-pinned `FROM` line, and every image built from the assembled tree uses it. No Dockerfile changes.
+
+[`base-images/overlay/`](base-images/overlay/) is that overlay with the goat team's Chainguard images. The rehearsal copies it over goatcore's role files, as a deploy does, and prints the build arguments three goatcore images would get:
+
+```bash
+GOAT_REPO=../goatcore base-images/run            # compares with checkpoints/base-images.txt
+GOAT_REPO=../goatcore base-images/run --record   # re-records after a deliberate change
+```
+
+```
+== roles after the overlay is copied over goatcore
+go-build  overlay  cgr.dev/chainguard/go:latest@sha256:65e8…
+runtime-cc  overlay  cgr.dev/chainguard/glibc-dynamic:latest@sha256:671a…
+…
+== build arguments for ops/goat-relay/Dockerfile
+BASE_RUNTIME_CC=cgr.dev/chainguard/glibc-dynamic:latest@sha256:671a…
+```
+
+To build for real, copy your environment over goatcore and run `python3 ops/base-images/base-images.py build --unit <image workflow stem> --tag <your registry>/<image>:<tag> --push`; then pin the digest in your environment's `ops/pins/`. The whole procedure, with the rules each role's image must meet, is goatcore's [build goat images on your own base images](https://github.com/usareur-af/goatcore/blob/main/docs/operations/build-on-your-own-base-images.md).
+
 ## Licence
 
 `hello-galaxy-goatenv` was written by U.S. Federal government employees. In the U.S. it is not subject to copyright and is in the public domain; in countries where copyright is recognized, it is released under the [Apache License 2.0](LICENSE). See [INTENT.md](INTENT.md).

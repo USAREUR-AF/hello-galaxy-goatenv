@@ -18,8 +18,9 @@ jobs:
       - name: shellcheck the driver
         run: |
           sudo apt-get update -qq && sudo apt-get install -y -qq shellcheck
-          shellcheck run
+          shellcheck run base-images/run
           [ -x run ] || { echo "run is not executable"; exit 1; }
+          [ -x base-images/run ] || { echo "base-images/run is not executable"; exit 1; }
 
       - name: every step is a goatbuilder fixture with its checkpoint
         run: |
@@ -77,3 +78,26 @@ jobs:
         env:
           GOAT_REPO: goatcore
         run: ./run goatcore/crates/target/release/goatbuilder
+
+  base-images:
+    name: an overlay's base images replace goatcore's, and the build arguments match the checkpoint
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: read the goatcore ref
+        id: ref
+        run: echo "ref=$(tr -d '[:space:]' < GOATBUILDER_REF)" >> "$GITHUB_OUTPUT"
+
+      - name: check out goatcore at that ref
+        uses: actions/checkout@v4
+        with:
+          repository: usareur-af/goatcore
+          ref: ${{ steps.ref.outputs.ref }}
+          path: goatcore
+
+      - name: rehearse base-images/run
+        env:
+          GOAT_REPO: goatcore
+        run: base-images/run

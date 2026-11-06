@@ -1,0 +1,73 @@
+#!/usr/bin/env bash
+# base-images/run — build goat images on your own base images, rehearsed.
+#
+#   GOAT_REPO=../goatcore base-images/run [--record]
+#
+# goatcore names every base image by role (ops/base-images/<role>/Dockerfile,
+# goatcore ADR 1220). An environment replaces a role by carrying its own file
+# at the same path; copying the environment over goatcore puts it in place.
+# This rehearsal does exactly that with base-images/overlay/ (the Chainguard
+# images the goat team's own goatnets build on), then prints, for three goatcore
+# Dockerfiles, the base-image build arguments a build would receive. Nothing is
+# pulled or built. The output is compared with checkpoints/base-images.txt.
+#
+# Bash 3.2 portable.
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+RECORD=""
+[ "${1:-}" = "--record" ] && RECORD=1
+if [ -z "${GOAT_REPO:-}" ] || [ ! -f "$GOAT_REPO/ops/base-images/base-images.py" ]; then
+  echo "base-images/run: set GOAT_REPO to a checkout of usareur-af/goatcore that has ops/base-images/ (ADR 1220)" >&2
+  exit 2
+fi
+GOAT_REPO="$(cd "$GOAT_REPO" && pwd)"
+TOOL="$GOAT_REPO/ops/base-images/base-images.py"
+
+rehearse() {
+  tree="$(mktemp -d)/tree"
+  mkdir -p "$tree/ops"
+  # 1. the public tree's role files, as a goatcore checkout has them
+  cp -R "$GOAT_REPO/ops/base-images" "$tree/ops/"
+  # 2. the environment copied over it, as for a deploy
+  cp -R "$ROOT/base-images/overlay/ops" "$tree/"
+
+  echo "== roles after the overlay is copied over goatcore"
+  for role_file in "$tree"/ops/base-images/*/Dockerfile; do
+    role="$(basename "$(dirname "$role_file")")"
+    ours="$ROOT/base-images/overlay/ops/base-images/$role/Dockerfile"
+    if [ -f "$ours" ]; then
+      echo "$role  overlay  $(sed -n 's/^FROM //p' "$role_file")"
+    else
+      echo "$role  public default (goatcore)"
+    fi
+  done
+
+  while read -r dockerfile target; do
+    echo
+    echo "== build arguments for $dockerfile"
+    if [ "$target" = "-" ]; then
+      python3 "$TOOL" args --root "$tree" --dockerfile "$GOAT_REPO/$dockerfile"
+    else
+      python3 "$TOOL" args --root "$tree" --dockerfile "$GOAT_REPO/$dockerfile" --target "$target"
+    fi
+  done <<'LIST'
+ops/goat-relay/Dockerfile runtime
+ops/onboard-runner/Dockerfile -
+ops/mgmt-host-bootstrap/Dockerfile -
+LIST
+}
+
+out="$(rehearse)"
+cp="$ROOT/checkpoints/base-images.txt"
+if [ -n "$RECORD" ]; then
+  printf '%s\n' "$out" > "$cp"
+  echo "recorded $cp"
+  exit 0
+fi
+if diff -u "$cp" <(printf '%s\n' "$out"); then
+  echo "base-images: matches checkpoints/base-images.txt"
+else
+  echo "base-images: differs from checkpoints/base-images.txt (re-record with --record after a deliberate change)" >&2
+  exit 1
+fi
