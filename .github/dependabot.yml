@@ -1,0 +1,17 @@
+# SPDX-FileCopyrightText: 2026 U.S. Federal Government (in countries where recognized)
+# SPDX-License-Identifier: Apache-2.0
+# Weekly dependency updates: one grouped pull request per ecosystem.
+# The Dockerfiles under base-images/overlay/ name a placeholder private
+# catalogue with zero digests on purpose, so they are not listed here.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    commit-message:
+      prefix: "chore(deps)"
+    groups:
+      actions:
+        patterns: ["*"]
