@@ -1,16 +1,16 @@
 == roles after the overlay is copied over goatcore
-go-build  overlay  cgr.dev/chainguard/go:latest@sha256:65e8b42e2c06a951df80725171337d9bdc8d3a2181d33cd2ef411a8a3d8873cc
-runtime-cc  overlay  cgr.dev/chainguard/glibc-dynamic:latest@sha256:671a621016fb33812136dea6182b1db957996d3c8c618187aaf86abd9b14af53
-runtime-shell  overlay  cgr.dev/chainguard/wolfi-base:latest@sha256:8509ee4351a2e501b7f98201f2e2642396e82020c61a589cacdcfe74b9de46c1
-runtime-static  overlay  cgr.dev/chainguard/static:latest@sha256:fc42af33e643f20d08baf03cddcc1c02ba57052dfb02edb0d79f3fc47bcea8d9
-rust-build  overlay  cgr.dev/chainguard/rust:latest-dev@sha256:54120f0b57f28063bd9f23e29113a28826ae08d731bb0bff11d6a6fa53bf74cf
+go-build  overlay  cgr.dev/example-org/go-fips:1.26-dev@sha256:0000000000000000000000000000000000000000000000000000000000000000
+runtime-cc  overlay  cgr.dev/example-org/glibc-dynamic-fips:latest@sha256:0000000000000000000000000000000000000000000000000000000000000000
+runtime-shell  overlay  cgr.dev/example-org/wolfi-base:latest@sha256:0000000000000000000000000000000000000000000000000000000000000000
+runtime-static  overlay  cgr.dev/example-org/static-fips:latest@sha256:0000000000000000000000000000000000000000000000000000000000000000
+rust-build  overlay  cgr.dev/example-org/rust:1.92-dev@sha256:0000000000000000000000000000000000000000000000000000000000000000
 
 == build arguments for ops/goat-relay/Dockerfile
-BASE_RUNTIME_CC=cgr.dev/chainguard/glibc-dynamic:latest@sha256:671a621016fb33812136dea6182b1db957996d3c8c618187aaf86abd9b14af53
+BASE_RUNTIME_CC=cgr.dev/example-org/glibc-dynamic-fips:latest@sha256:0000000000000000000000000000000000000000000000000000000000000000
 
 == build arguments for ops/onboard-runner/Dockerfile
-BASE_RUNTIME_SHELL=cgr.dev/chainguard/wolfi-base:latest@sha256:8509ee4351a2e501b7f98201f2e2642396e82020c61a589cacdcfe74b9de46c1
+BASE_RUNTIME_SHELL=cgr.dev/example-org/wolfi-base:latest@sha256:0000000000000000000000000000000000000000000000000000000000000000
 
 == build arguments for ops/mgmt-host-bootstrap/Dockerfile
-BASE_GO_BUILD=cgr.dev/chainguard/go:latest@sha256:65e8b42e2c06a951df80725171337d9bdc8d3a2181d33cd2ef411a8a3d8873cc
-BASE_RUNTIME_STATIC=cgr.dev/chainguard/static:latest@sha256:fc42af33e643f20d08baf03cddcc1c02ba57052dfb02edb0d79f3fc47bcea8d9
+BASE_GO_BUILD=cgr.dev/example-org/go-fips:1.26-dev@sha256:0000000000000000000000000000000000000000000000000000000000000000
+BASE_RUNTIME_STATIC=cgr.dev/example-org/static-fips:latest@sha256:0000000000000000000000000000000000000000000000000000000000000000

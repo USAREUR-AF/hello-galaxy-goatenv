@@ -6,8 +6,8 @@
 # goatcore names every base image by role (ops/base-images/<role>/Dockerfile,
 # goatcore ADR 1220). An environment replaces a role by carrying its own file
 # at the same path; copying the environment over goatcore puts it in place.
-# This rehearsal does exactly that with base-images/overlay/ (the Chainguard
-# images the goat team's own goatnets build on), then prints, for three goatcore
+# This rehearsal does exactly that with base-images/overlay/ (a private
+# Chainguard catalogue under the placeholder organisation example-org), then prints, for three goatcore
 # Dockerfiles, the base-image build arguments a build would receive. Nothing is
 # pulled or built. The output is compared with checkpoints/base-images.txt.
 #
