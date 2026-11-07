@@ -16,7 +16,7 @@ PHASE  TYPE     STEP
 9      tool     Write the access rules and settings
 10     manual   Review what was written, and let the router onto our core
 11     ansible  Open the connection the agreement chooses
-12     ansible  Deploy the router that connects the two networks
+12     ansible  Deploy the edge router, and the republisher on our core
 13     ansible  Trust the other party's identity service
 14     gate     Test that allowed traffic passes and the rest is refused
 
@@ -39,8 +39,9 @@ What a real run would leave to you, at phase 5:
 
      /tmp/goat-peering-rehearsal/keys.txt
 
-Optional: set FED_DIRECTORY_URL, FED_PACKAGE_URL and FED_COUNTERPARTY_ID to look
-the other party up in a peering directory (saltlick) first. It grants no access.
+Optional: set FED_DIRECTORY_URL, FED_COUNTERPARTY_ID and FED_SIGNING_KEY to
+exchange packages and CA certificates through a peering directory (saltlick); no
+public host is needed. It grants no access.
 
 To see more: add -o json to see every phase's command, or read
 docs/operations/sovereign-federation-runbook.md.
