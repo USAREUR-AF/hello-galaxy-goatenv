@@ -1,3 +1,5 @@
-# Role runtime-cc, replaced with a Chainguard image: the bases the goat team's own
-# goatnets build on. Copy this overlay over a goatcore checkout to use it.
-FROM cgr.dev/chainguard/glibc-dynamic:latest@sha256:671a621016fb33812136dea6182b1db957996d3c8c618187aaf86abd9b14af53
+# Role runtime-cc, replaced with an image from a private Chainguard catalogue
+# (organisation example-org). The digest is a placeholder: put the one
+# `crane digest` prints for your organisation's image. Copy this overlay over a
+# goatcore checkout to use it; a build logs in to cgr.dev first.
+FROM cgr.dev/example-org/glibc-dynamic-fips:latest@sha256:0000000000000000000000000000000000000000000000000000000000000000

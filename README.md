@@ -35,9 +35,9 @@ Nothing touches a network: a scripted converger stands in for the hosts, so ever
 
 ## Build on your own base images
 
-Every goat image starts from base images named by role: `rust-build`, `go-build`, `runtime-cc`, `runtime-static`, `runtime-shell` (and `node-build` in goatstuff). goatcore's defaults are images anyone may redistribute: Debian official images and distroless Debian 13. The goat team's own goatnets build on Chainguard instead, and so can yours: put a file per role at `ops/base-images/<role>/Dockerfile` in your environment, holding one digest-pinned `FROM` line, and every image built from the assembled tree uses it. No Dockerfile changes.
+Every goat image starts from base images named by role: `rust-build`, `go-build`, `runtime-cc`, `runtime-static`, `runtime-shell` (and `node-build` in goatstuff). goatcore's defaults are Chainguard's free images, pinned by digest. To build on others, such as a private Chainguard catalogue with versioned tags and FIPS variants: put a file per role at `ops/base-images/<role>/Dockerfile` in your environment, holding one digest-pinned `FROM` line, and every image built from the assembled tree uses it. No Dockerfile changes.
 
-[`base-images/overlay/`](base-images/overlay/) is that overlay with the goat team's Chainguard images. The rehearsal copies it over goatcore's role files, as a deploy does, and prints the build arguments three goatcore images would get:
+[`base-images/overlay/`](base-images/overlay/) is that overlay for a private catalogue under a placeholder organisation, `example-org`. The rehearsal copies it over goatcore's role files, as a deploy does, and prints the build arguments three goatcore images would get:
 
 ```bash
 GOAT_REPO=../goatcore base-images/run            # compares with checkpoints/base-images.txt
@@ -46,11 +46,11 @@ GOAT_REPO=../goatcore base-images/run --record   # re-records after a deliberate
 
 ```
 == roles after the overlay is copied over goatcore
-go-build  overlay  cgr.dev/chainguard/go:latest@sha256:65e8…
-runtime-cc  overlay  cgr.dev/chainguard/glibc-dynamic:latest@sha256:671a…
+go-build  overlay  cgr.dev/example-org/go-fips:1.26-dev@sha256:0000…
+runtime-cc  overlay  cgr.dev/example-org/glibc-dynamic-fips:latest@sha256:0000…
 …
 == build arguments for ops/goat-relay/Dockerfile
-BASE_RUNTIME_CC=cgr.dev/chainguard/glibc-dynamic:latest@sha256:671a…
+BASE_RUNTIME_CC=cgr.dev/example-org/glibc-dynamic-fips:latest@sha256:0000…
 ```
 
 To build for real, copy your environment over goatcore and run `python3 ops/base-images/base-images.py build --unit <image workflow stem> --tag <your registry>/<image>:<tag> --push`; then pin the digest in your environment's `ops/pins/`. The whole procedure, with the rules each role's image must meet, is goatcore's [build goat images on your own base images](https://github.com/usareur-af/goatcore/blob/main/docs/operations/build-on-your-own-base-images.md).

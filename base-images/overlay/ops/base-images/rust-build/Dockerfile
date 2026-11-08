@@ -1,3 +1,5 @@
-# Role rust-build, replaced with a Chainguard image: the bases the goat team's own
-# goatnets build on. Copy this overlay over a goatcore checkout to use it.
-FROM cgr.dev/chainguard/rust:latest-dev@sha256:54120f0b57f28063bd9f23e29113a28826ae08d731bb0bff11d6a6fa53bf74cf
+# Role rust-build, replaced with an image from a private Chainguard catalogue
+# (organisation example-org). The digest is a placeholder: put the one
+# `crane digest` prints for your organisation's image. Copy this overlay over a
+# goatcore checkout to use it; a build logs in to cgr.dev first.
+FROM cgr.dev/example-org/rust:1.92-dev@sha256:0000000000000000000000000000000000000000000000000000000000000000
