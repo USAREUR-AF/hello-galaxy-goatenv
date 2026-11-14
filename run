@@ -11,7 +11,8 @@
 #
 # Each rehearsal is the "Rehearse it on the fixture" commands of the matching
 # tutorial in goatcore (docs/tutorials/), with this repository's root in place of
-# ops/goatbuilder/fixtures/goatnet-from-scratch/. Output is normalised the
+# ops/goatbuilder/fixtures/goatnet-from-scratch/ (tutorial 3's fixture is copied to
+# a fixed path first: rehearse_03 says why). Output is normalised the
 # way goatcore's ops/tutorials/check.sh normalises it (the millisecond timing, the
 # scratch directory) and diffed against checkpoints/<tutorial>.txt. Any
 # difference fails. --record rewrites the checkpoints; review the diff.
@@ -70,8 +71,15 @@ rehearse_03() {
   WORK=/tmp/goat-peering-rehearsal
   rm -rf "$WORK"; mkdir -p "$WORK"
   printf '{"transport":{"kind":"ipsec-fips"}}' > "$WORK/agreement.json"
-  GOAT_BIN=goat goatbuilder -C "$GOAT_REPO" --mock "$ROOT/03-boundary-node" \
-    federate hello-ally --as zagros --work "$WORK" --dry-run
+  # The plan page prints the commands it would run and every value with its
+  # source, wrapped to the terminal width, so a path in them must not depend on
+  # where the two checkouts are: the plan runs from goatcore's root as `-C .`, as
+  # the tutorial runs it, with the fixture at a fixed path beside the working
+  # directory.
+  FIXTURE=/tmp/goat-peering-rehearsal-fixture
+  rm -rf "$FIXTURE"; cp -R "$ROOT/03-boundary-node" "$FIXTURE"
+  (cd "$GOAT_REPO" && GOAT_BIN=goat goatbuilder -C . --mock "$FIXTURE" \
+    federate hello-ally --as zagros --work "$WORK" --dry-run)
 }
 
 fail=0
