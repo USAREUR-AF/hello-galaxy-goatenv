@@ -1,12 +1,13 @@
-<h1 align="center">hello-galaxy-goatenv</h1>
+# hello-galaxy-goatenv
 
-<p align="center">
-  A step-by-step walkthrough that builds a goat environment from nothing.
-</p>
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/figures/four-steps-dark.svg">
+  <img src="docs/figures/four-steps-light.svg" width="760" alt="Four rehearsed steps: goatlite brings up one box, pasture-core-1, with 6 of 6 components converged; a new goatnet, zagros, converges 8 of 8 on four machines at site alpha; the first federated node adds site beta for 13 of 13 on five machines; a boundary node adds an edge class at alpha and prints a 14-phase plan to peer with hello-ally.">
+</picture>
 
-<p align="center">
-  <a href="LICENSE"><img src="https://img.shields.io/badge/License-Apache_2.0-blue.svg" alt="License: Apache 2.0"></a>
-</p>
+A step-by-step walkthrough that builds a goat environment from nothing. Every step runs for real against files and is compared with a recorded checkpoint, so you can diff your own run against a known-good one.
+
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 
 > [!NOTE]
 > goat is pre-1.0: interfaces can still change between releases.
